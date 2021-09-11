@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
+from django.contrib import messages
 
 from .models import Choice, Question
 
@@ -56,4 +57,5 @@ def vote(request, question_id):
             # user hits the Back button.
             return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
         else:
+            messages.error(request, f"Error: poll \"{question.question_text}\" is no longer publish.")
             return HttpResponseRedirect(reverse('polls:index'))
