@@ -36,6 +36,54 @@ class QuestionModelTests(TestCase):
         recent_question = Question(pub_date=time)
         self.assertIs(recent_question.was_published_recently(), True)
 
+    def test_is_published_with_past_question(self):
+        """
+        is_published() returns False for questions whose pub_date
+        was passed.
+        """
+        time = timezone.now() - datetime.timedelta(days=2)
+        past_question = Question(pub_date=time)
+        self.assertIs(past_question.is_published(), True)
+
+    def test_is_published_with_future_question(self):
+        """
+        is_published() returns False for questions whose pub_date
+        is not arrived.
+        """
+        time = timezone.now() + datetime.timedelta(days=2)
+        future_question = Question(pub_date=time)
+        self.assertIs(future_question.is_published(), False)
+
+    def test_can_vote_with_question_is_enable_to_vote(self):
+        """
+        can_vote() returns True for questions whose current time
+        are after the publication date and before end date.
+        """
+        pub_date = timezone.now() - datetime.timedelta(days=1)
+        end_date = timezone.now() + datetime.timedelta(days=1)
+        available_question = Question(pub_date=pub_date, end_date=end_date)
+        self.assertIs(available_question.can_vote(), True)
+
+    def test_can_vote_with_question_before_publication_date_question(self):
+        """
+        can_vote() returns False when the current time
+        has not arrived at the publication date.
+        """
+        pub_date = timezone.now() + datetime.timedelta(days=1)
+        end_date = timezone.now() + datetime.timedelta(days=10)
+        ended_question = Question(pub_date=pub_date, end_date=end_date)
+        self.assertIs(ended_question.can_vote(), False)
+
+    def test_can_vote_with_question_after_end_date_question(self):
+        """
+        can_vote() returns False when the current time
+        passed the end date.
+        """
+        pub_date = timezone.now() - datetime.timedelta(days=10)
+        end_date = timezone.now() - datetime.timedelta(days=1)
+        ended_question = Question(pub_date=pub_date, end_date=end_date)
+        self.assertIs(ended_question.can_vote(), False)
+
 
 def create_question(question_text, days):
     """
@@ -103,6 +151,7 @@ class QuestionIndexViewTests(TestCase):
             response.context['latest_question_list'],
             ['<Question: Past question 2.>', '<Question: Past question 1.>']
         )
+
 
 class QuestionDetailViewTests(TestCase):
     def test_future_question(self):
