@@ -1,13 +1,18 @@
+"""The admin models for polls application."""
 from django.contrib import admin
 from .models import Choice, Question
 
 
 class ChoiceInline(admin.TabularInline):
+    """Choice model of admin."""
+
     model = Choice
     extra = 3
 
 
 class QuestionAdmin(admin.ModelAdmin):
+    """Question model for admin."""
+
     fieldsets = [
         (None,               {'fields': ['question_text']}),
         ('Date information',
