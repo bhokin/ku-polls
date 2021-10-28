@@ -42,7 +42,7 @@ class ResultsView(generic.DetailView):
     template_name = 'polls/results.html'
 
 
-@login_required
+@login_required(login_url='/accounts/login/')
 def vote(request, question_id):
     """Increase the result of vote and save it if the question can vote."""
     question = get_object_or_404(Question, pk=question_id)
