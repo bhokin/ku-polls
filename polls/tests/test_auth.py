@@ -1,6 +1,6 @@
 """Tests of authentication."""
 import django.test
-from polls.models import Question, Choice
+from ..models import Question, Choice
 from django.urls import reverse
 from django.contrib.auth.models import User
 
