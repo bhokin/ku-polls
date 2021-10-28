@@ -3,6 +3,7 @@ import datetime
 
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -67,3 +68,19 @@ class Choice(models.Model):
             str: choice text
         """
         return self.choice_text
+
+
+class Vote(models.Model):
+    """Vote model in each poll question."""
+
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, default=0)
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE, default=0)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, default=0)
+
+    def __str__(self):
+        """Return the representation of vote.
+
+        Returns:
+            str: question text
+        """
+        return f"{self.question} has been voted"
