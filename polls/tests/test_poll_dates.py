@@ -1,3 +1,4 @@
+"""Tests of Django polls application for the question model using Django pytest."""
 import datetime
 from django.test import TestCase
 from django.utils import timezone

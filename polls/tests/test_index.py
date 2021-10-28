@@ -1,3 +1,4 @@
+"""Tests of Django polls application for the question index view using Django pytest."""
 from django.urls import reverse
 from django.test import TestCase
 

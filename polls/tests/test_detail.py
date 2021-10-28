@@ -1,4 +1,4 @@
-"""Tests of Django polls application using django pytest."""
+"""Tests of Django polls application for the question detail view using Django pytest."""
 import datetime
 from django.urls import reverse
 from django.test import TestCase
