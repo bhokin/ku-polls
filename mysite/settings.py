@@ -113,6 +113,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LOGIN_REDIRECT_URL = '/polls/'
+LOGOUT_REDIRECT_URL = '/polls/'
 
 
 # Internationalization
