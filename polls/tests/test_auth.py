@@ -1,4 +1,4 @@
-"""Tests of authentication."""
+"""Tests of Django polls application for authentication using Django pytest."""
 import django.test
 from ..models import Question, Choice
 from django.urls import reverse
@@ -6,8 +6,10 @@ from django.contrib.auth.models import User
 
 
 class UserAuthTest(django.test.TestCase):
+    """Tests of authentication."""
 
     def setUp(self):
+        """User auth set up."""
         super().setUp()
         self.username = "testuser"
         self.password = "Fat-Chance!"
