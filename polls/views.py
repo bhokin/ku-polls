@@ -1,4 +1,5 @@
 """Views for the polls application."""
+import logging
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -6,8 +7,11 @@ from django.views import generic
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.dispatch import receiver
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 
 from .models import Choice, Question, Vote
+from ..mysite.settings import LOGGING
 
 
 def get_client_ip(request):
@@ -18,6 +22,28 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger("polls")
+
+
+@receiver(user_logged_in)
+def login_logging(sender, request, user, **kwargs):
+    """Show an info logging when the user is logged in."""
+    logger.info(f"User: {user.username} logged in from {get_client_ip(request)}")
+
+
+@receiver(user_logged_out)
+def logout_logging(sender, request, user, **kwargs):
+    """Show an info logging when the user is logged out."""
+    logger.info(f'User: {user.username} from {get_client_ip(request)} has logged out')
+
+
+@receiver(user_login_failed)
+def failed_login_logging(sender, request, user, **kwargs):
+    """Show a warning info logging when the user enters a wrong username or password."""
+    logger.warning(f"Invalid login attempt for User: {user.username} from {get_client_ip(request)}")
 
 
 class IndexView(generic.ListView):
