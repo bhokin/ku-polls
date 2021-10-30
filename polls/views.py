@@ -11,7 +11,6 @@ from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 
 from .models import Choice, Question, Vote
-from ..mysite.settings import LOGGING
 
 
 def get_client_ip(request):
@@ -24,7 +23,6 @@ def get_client_ip(request):
     return ip
 
 
-logging.config.dictConfig(LOGGING)
 logger = logging.getLogger("polls")
 
 
@@ -37,13 +35,13 @@ def login_logging(sender, request, user, **kwargs):
 @receiver(user_logged_out)
 def logout_logging(sender, request, user, **kwargs):
     """Show an info logging when the user is logged out."""
-    logger.info(f'User: {user.username} from {get_client_ip(request)} has logged out')
+    logger.info(f"User: {user.username} logged out from {get_client_ip(request)}")
 
 
 @receiver(user_login_failed)
-def failed_login_logging(sender, request, user, **kwargs):
+def failed_login_logging(sender, request, credentials, **kwargs):
     """Show a warning info logging when the user enters a wrong username or password."""
-    logger.warning(f"Invalid login attempt for User: {user.username} from {get_client_ip(request)}")
+    logger.warning(f"Invalid login attempt for User: {credentials['username']} from {get_client_ip(request)}")
 
 
 class IndexView(generic.ListView):
