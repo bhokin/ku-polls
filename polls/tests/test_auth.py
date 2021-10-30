@@ -9,14 +9,14 @@ class UserAuthTest(django.test.TestCase):
     """Tests of authentication."""
 
     def setUp(self):
-        """User auth set up."""
+        """Superclass setUp creates a Client object and initializes database."""
         super().setUp()
         self.username = "testuser"
-        self.password = "Fat-Chance!"
+        self.password = "FatChance!"
         self.user1 = User.objects.create_user(
-                         username=self.username,
-                         password=self.password,
-                         email="testuser@nowhere.com")
+            username=self.username,
+            password=self.password,
+            email="testuser@nowhere.com")
         self.user1.first_name = "Tester"
         self.user1.save()
         # need a poll question to test voting
@@ -37,7 +37,7 @@ class UserAuthTest(django.test.TestCase):
         # Can login using POST
         # usage: client.post(url, {'key1":"value", "key2":"value"})
         form_data = {"username": "testuser",
-                     "password": "Fat-Chance!"
+                     "password": "FatChance!"
                      }
         response = self.client.post(login_url, form_data)
         self.assertEqual(302, response.status_code)
@@ -49,8 +49,8 @@ class UserAuthTest(django.test.TestCase):
 
         As an unauthenticated user,
         When I submit a vote for a question,
-        Then I receive a 403 status code response
-          Or I am redirected to the login page
+        Then I am redirected to the login page
+          Or I receive a 403 response (FORBIDDEN)
         """
         vote_url = reverse('polls:vote', args=[self.question.id])
 
@@ -59,4 +59,6 @@ class UserAuthTest(django.test.TestCase):
         # the polls detail page has a form, each choice is identified by its id
         form_data = {"choice": f"{choice.id}"}
         response = self.client.post(vote_url, form_data)
-        self.assertEqual(response.status_code, 403)
+        # should be redirected to the login page
+        self.assertEqual(response.status_code, 302)  # could be 303
+        self.assertRedirects(response, reverse('login'))
