@@ -1,12 +1,47 @@
 """Views for the polls application."""
+import logging
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.dispatch import receiver
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 
-from .models import Choice, Question
+from .models import Choice, Question, Vote
+
+
+def get_client_ip(request):
+    """Get the visitor’s IP address using request headers."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+logger = logging.getLogger("polls")
+
+
+@receiver(user_logged_in)
+def login_logging(sender, request, user, **kwargs):
+    """Show an info logging when the user is logged in."""
+    logger.info(f"User: {user.username} logged in from {get_client_ip(request)}")
+
+
+@receiver(user_logged_out)
+def logout_logging(sender, request, user, **kwargs):
+    """Show an info logging when the user is logged out."""
+    logger.info(f"User: {user.username} logged out from {get_client_ip(request)}")
+
+
+@receiver(user_login_failed)
+def failed_login_logging(sender, request, credentials, **kwargs):
+    """Show a warning info logging when the user enters a wrong username or password."""
+    logger.warning(f"Invalid login attempt for User: {credentials['username']} from {get_client_ip(request)}")
 
 
 class IndexView(generic.ListView):
@@ -41,11 +76,14 @@ class ResultsView(generic.DetailView):
     template_name = 'polls/results.html'
 
 
+@login_required(login_url='/accounts/login/')
 def vote(request, question_id):
     """Increase the result of vote and save it if the question can vote."""
     question = get_object_or_404(Question, pk=question_id)
     try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+        # refactor add explanatory variable
+        choice_id = request.POST['choice']
+        selected_choice = question.choice_set.get(pk=choice_id)  # primary key
     except (KeyError, Choice.DoesNotExist):
         # Redisplay the question voting form.
         return render(request, 'polls/detail.html', {
@@ -53,11 +91,31 @@ def vote(request, question_id):
             'error_message': "You didn't select a choice.",
         })
     else:
-        selected_choice.votes += 1
-        selected_choice.save()
+        # selected_choice.votes += 1
+        # selected_choice.save()
+        user = request.user
+        vote = get_vote_for_user(question, user)
+        if not vote:
+            vote = selected_choice.vote_set.create(user=user, question=question)
+        else:
+            vote.choice = selected_choice
+        vote.save()
+
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(
             reverse('polls:results', args=(question.id,))
         )
+
+
+def get_vote_for_user(question, user):
+    """Return vote of the user from the question."""
+    try:
+        votes = Vote.objects.filter(user=user).filter(choice__question=question)
+        if votes.count() == 0:
+            return None
+        else:
+            return votes[0]
+    except Vote.DoesNotExist:
+        return None
